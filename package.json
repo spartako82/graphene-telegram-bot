@@ -1,0 +1,32 @@
+{
+  "name": "graphene-telegram-bot",
+  "description": "Telegram bot for graphene witness",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "author": "spartako",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
+    "minimist": "*",
+    "async": "*",
+    "yargs" : "*",
+    "underscore": "*",
+    "underscore.string": "*",
+    "ws" : "*",
+    "node-telegram-bot-api" : "*"
+  },
+  "keywords": [
+    "bitshares",
+    "rpc",
+    "client"
+  ],
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter spec"
+  },
+  "devDependencies": {
+    "expect.js" : "*",
+    "mocha" : "*"
+  }
+}

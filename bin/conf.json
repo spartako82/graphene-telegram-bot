@@ -1,0 +1,4 @@
+{
+  "token" : "TELEGRAM_TOKEN",
+  "url" : "ws://127.0.0.1:8099"
+}
