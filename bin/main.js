@@ -5,6 +5,7 @@ var _ = require('underscore');
 var _str = require('underscore.string');
 var fs = require('fs');
 var conf = require('./conf.json')
+//var conf = require('../lib/conf.json')
 
 console.log(conf);
 var token = conf.token;
@@ -37,8 +38,8 @@ var cmds = {
     }
     client.get_asset(asset,function(err,a){
       if(err){
-        console.log("Asset not found");
-        //bot.sendMessage(msg.chat.id,"Asset not found");
+        //console.log("Asset not found");
+        bot.sendMessage(msg.chat.id,"Asset not found");
       }
       else{
         var prec = Math.pow(10,5-a.precision);
@@ -59,7 +60,7 @@ var cmds = {
         }
         else{
           console.log(w.total_missed);
-          bot.sendMessage(msg.chat.id,"missed "+witness+": "+w.total_missed);
+          bot.sendMessage(msg.chat.id,"missed blocks "+witness+": "+w.total_missed);
         }
       })
     }
@@ -69,9 +70,8 @@ var cmds = {
     }
   },
   "/monitor" : function(bot,client,msg){
-    console.log("mon");
     var witness = getWitnessParam(msg);
-    console.log(witness);
+    //console.log(witness);
     if(witness){
       client.get_witness(witness,function(err,w){
         if(err){
@@ -89,7 +89,7 @@ var cmds = {
     }
   },
   "/listmonitor" : function(bot,client,msg){
-    console.log("/listmonitor");
+    //console.log("/listmonitor");
     var monitors = _.filter(_.values(hMonitor),function(m){
       return (m.active === true) && (m.chatId === msg.chat.id);
     });
@@ -122,31 +122,32 @@ var cmds = {
       bot.sendMessage(msg.chat.id,"witness not found");
     }
   },
+  "/status" : function(bot,client,msg){
+    client.info(function(err,s){
+      if(err){
+        bot.sendMessage(msg.chat.id,"status error");
+      }
+      else{
+        var status = _str.sprintf("Blocks: %d, Participation: %.2f%%, LastBlock: %s",
+                                  s.head_block_num,parseFloat(s.participation),s.head_block_age);
+        bot.sendMessage(msg.chat.id,status);
+      }
+    });
+  },
   "/help" : function(bot,client,msg){
-    bot.sendMessage(msg.chat.id,"Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n");
+    bot.sendMessage(msg.chat.id,
+                    "Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n/status\n");
   },
 };
 
 var executeCmd = function(bot,client,msg){
-  if(msg.text.match(/\/help/)){
-    cmds["/help"](bot,client,msg);
+  var cmd = msg.text.split(" ")[0];
+  if(cmd in cmds){
+    cmds[cmd](bot,client,msg);
   }
-  else if(msg.text.match(/\/price/)){
-    cmds["/price"](bot,client,msg);
+  else{
+    //bot.sendMessage(msg.chat.id,cmd+": command not found");
   }
-  else if(msg.text.match(/\/monitor/)){
-    cmds["/monitor"](bot,client,msg);
-  }
-  else if(msg.text.match(/\/listmonitor/)){
-    cmds["/listmonitor"](bot,client,msg);
-  }
-  else if(msg.text.match(/\/stopmonitor/)){
-    cmds["/stopmonitor"](bot,client,msg);
-  }
-  else if(msg.text.match(/\/missed/)){
-    cmds["/missed"](bot,client,msg);
-  }
-
 };
 
 // var end = false;
@@ -184,7 +185,7 @@ var monitor = function(bot,client){
       var monitors = _.filter(_.values(hMonitor),function(m){
         return m.active === true;
       });
-      console.log(monitors);
+      console.log(_.map(monitors,function(m){return m.witness+"-"+m.chatId}));
       async.eachSeries(monitors,function(m,_cb){
         if(m.firstTime){
           client.get_witness(m.witness,function(err,w){
