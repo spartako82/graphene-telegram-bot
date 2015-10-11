@@ -10,6 +10,65 @@ var conf = require('./conf.json')
 console.log(conf);
 var token = conf.token;
 
+var getClientAndCheck = function(url,cb){
+  graphene.wallet.createWalletClient(url,function(err,client){
+    if(err){
+      cb(err,null);
+    }
+    else{
+      client.info(function(err,s){
+        if(err){
+          cb(err,null);
+          client.close();
+        }
+        else{
+          var isRecent = false;
+          isRecent = parseInt(s.head_block_age) < 30 && s.head_block_age.match("second");
+          var inSync = isRecent && parseFloat(s.participation) >= 50;
+          if(inSync){
+            cb(false,client,url);
+          }
+          else{
+            cb(new Error("Client not in sync"),null);
+            client.close();
+          }
+        }
+      });
+    }
+  });
+};
+
+var getClient = function(urls,cb){
+  if(urls.length === 0){
+    return cb(new Error("No urls"),null);
+  }
+
+  var client = null;
+  var idxUrl = 0;
+  async.whilst(
+    function(){ return (idxUrl<urls.length) && !client},
+    function(_cb){
+      var url = urls[idxUrl];
+      getClientAndCheck(url,function(err,_client,url){
+        if(_client){
+          client = _client;
+        }
+        else{
+          idxUrl++;
+        }
+        _cb();
+      });
+    },
+    function(){
+      if(client){
+        cb(false,client,urls[idxUrl]);
+      }
+      else{
+        cb(new Error("Client not found"),null);
+      }
+    });
+};
+
 var getParams = function(msg){
   var params = msg.text.split(" ");
   params = _.filter(params);
@@ -229,13 +288,63 @@ if(fs.existsSync("monitor.json")){
   hMonitor = monFile;
 }
 
-graphene.wallet.createWalletClient(conf.url,function(err,client){
+var urls = [conf.url];
+if(conf.backupUrls){
+  urls = urls.concat(conf.backupUrls);
+}
+
+
+
+var client = null;
+
+var checkClientAndUpdate = function(bot,cbUpdate){
+  var isOk = true;
+  async.whilst(
+    function(){ return true},
+    function(_cb){
+      getClient(urls,function(err,_client,url){
+        if(err){
+          if(isOk){
+            bot.sendMessage(conf.adminChatId,"No client founds!");
+            isOk = false;
+          }
+        }
+        else{
+          if(isOk){
+            cbUpdate(false,_client);
+            console.log("URL",url);
+          }
+          else{
+            cbUpdate(false,_client);
+            console.log("URL",url);
+            bot.sendMessage(conf.adminChatId,"Client found again");
+            isOk = true;
+          }
+        }
+        setTimeout(_cb,1000);
+      });
+    },
+    function(){
+    });
+};
+
+getClient(urls,function(err,_client,url){
+  client = _client;
   var bot = new TelegramBot(token, {polling: true});
   bot.on('text', function (msg) {
-    console.log(msg)
-    executeCmd(bot,client,msg);
-    //bot.sendMessage(msg.chat.id,msg.text);
+    if(client){
+      console.log(msg)
+      executeCmd(bot,client,msg);
+      //bot.sendMessage(msg.chat.id,msg.text);
+    }
+    else{
+      bot.sendMessage(msg.chat.id,"Error: no witness in sync available");
+    }
   });
   // Monitor procedure
   monitor(bot,client);
+  // check client procedure
+  checkClientAndUpdate(bot,function(err,_client){
+    client = _client;
+  });
 });
