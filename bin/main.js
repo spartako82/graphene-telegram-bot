@@ -43,7 +43,7 @@ var cmds = {
       }
       else{
         var prec = Math.pow(10,5-a.precision);
-        var value = prec*a.options.core_exchange_rate.quote.amount/a.options.core_exchange_rate.base.amount;
+        var value = prec*a.options.core_exchange_rate.base.amount/a.options.core_exchange_rate.quote.amount;
         var res = _str.sprintf("%.8f",value);
         //console.log(res);
         bot.sendMessage(msg.chat.id,"CORE/"+asset+": "+res);
