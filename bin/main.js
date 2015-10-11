@@ -5,7 +5,7 @@ var _ = require('underscore');
 var _str = require('underscore.string');
 var fs = require('fs');
 var conf = require('./conf.json')
-//var conf = require('../lib/conf.json')
+//var conf = require('../conf/conf.json')
 
 console.log(conf);
 var token = conf.token;
