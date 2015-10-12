@@ -4,11 +4,40 @@ var graphene = require('node-graphene');
 var _ = require('underscore');
 var _str = require('underscore.string');
 var fs = require('fs');
-var conf = require('./conf.json')
-//var conf = require('../conf/conf.json')
+//var conf = require('./conf.json')
+var conf = require('../conf/conf.json')
 
 console.log(conf);
 var token = conf.token;
+
+var checkClient = function(client,cb){
+  if(client){
+    try{
+      client.info(function(err,s){
+        if(err){
+          cb(err,false);
+        }
+        else{
+          var isRecent = false;
+          isRecent = parseInt(s.head_block_age) < 30 && s.head_block_age.match("second");
+          var inSync = isRecent && parseFloat(s.participation) >= 50;
+          if(inSync){
+            cb(false,true);
+          }
+          else{
+            cb(new Error("Client not in sync"),false);
+          }
+        }
+      });
+    }
+    catch(e){
+      cb(e,false);
+    }
+  }
+  else{
+    cb(new Error("no client"),false);
+  }
+};
 
 var getClientAndCheck = function(url,cb){
   graphene.wallet.createWalletClient(url,function(err,client){
@@ -16,33 +45,20 @@ var getClientAndCheck = function(url,cb){
       cb(err,null);
     }
     else{
-      client.info(function(err,s){
-        if(err){
-          cb(err,null);
-          client.close();
+      checkClient(client,function(err,check){
+        if(check){
+          cb(false,client,url);
         }
         else{
-          var isRecent = false;
-          isRecent = parseInt(s.head_block_age) < 30 && s.head_block_age.match("second");
-          var inSync = isRecent && parseFloat(s.participation) >= 50;
-          if(inSync){
-            cb(false,client,url);
-          }
-          else{
-            cb(new Error("Client not in sync"),null);
-            client.close();
-          }
+          cb(err,null);
+          client.close();
         }
       });
     }
   });
 };
 
-var getClient = function(urls,cb){
-  if(urls.length === 0){
-    return cb(new Error("No urls"),null);
-  }
-
+var searchClient = function(urls,cb){
   var client = null;
   var idxUrl = 0;
   async.whilst(
@@ -67,6 +83,27 @@ var getClient = function(urls,cb){
         cb(new Error("Client not found"),null);
       }
     });
+};
+
+var getClient = function(urls,currClient,cb){
+  if(urls.length === 0){
+    return cb(new Error("No urls"),null);
+  }
+
+  if(currClient){
+    checkClient(currClient,function(err,check){
+      if(check){
+        console.log("Check",check);
+        cb(false,currClient,true);
+      }
+      else{
+        searchClient(urls,cb);
+      }
+    });
+  }
+  else{
+    searchClient(urls,cb);
+  }
 };
 
 var getParams = function(msg){
@@ -104,8 +141,9 @@ var cmds = {
         var prec = Math.pow(10,5-a.precision);
         var value = prec*a.options.core_exchange_rate.base.amount/a.options.core_exchange_rate.quote.amount;
         var res = _str.sprintf("%.8f",value);
+        var resInv = _str.sprintf("%.2f",1/value);
         //console.log(res);
-        bot.sendMessage(msg.chat.id,"CORE/"+asset+": "+res);
+        bot.sendMessage(msg.chat.id,asset+"/CORE: "+res+"\nCORE/"+asset+": "+resInv);
       }
     })
   },
@@ -237,72 +275,54 @@ var deactiveMonitor = function(witness,chatId){
   }
 };
 
-var monitor = function(bot,client){
-  async.whilst(
-    function(){ return true},
-    function(cb){
-      var monitors = _.filter(_.values(hMonitor),function(m){
-        return m.active === true;
-      });
-      console.log(_.map(monitors,function(m){return m.witness+"-"+m.chatId}));
-      async.eachSeries(monitors,function(m,_cb){
-        if(m.firstTime){
-          client.get_witness(m.witness,function(err,w){
-            if(err){
-              bot.sendMessage(m.chatId,"Error found, monitor not active");
-              m.active = false;
-            }
-            else{
-              m.lastMissed = w.total_missed;
-              m.firstTime = false;
-            }
-            _cb();
-          });
-        }
-        else{
-          client.get_witness(m.witness,function(err,w){
-            if(err){
-              bot.sendMessage(m.chatId,"Error found, monitor not active");
-              m.active = false;
-            }
-            else{
-              if(w.total_missed != m.lastMissed){
-                bot.sendMessage(m.chatId,"witness "+m.witness+" missed a new block (total missed "+w.total_missed+")");
-              }
-              m.lastMissed = w.total_missed;
-            }
-            _cb();
-          });
-        }
-      },function(){
-        setTimeout(cb,1000);
-      });
-    },
-    function(){
+var monitor = function(bot,client,cb){
+  try{
+    var monitors = _.filter(_.values(hMonitor),function(m){
+      return m.active === true;
     });
+    console.log(_.map(monitors,function(m){return m.witness+"-"+m.chatId}));
+    async.eachSeries(monitors,function(m,_cb){
+      if(m.firstTime){
+        client.get_witness(m.witness,function(err,w){
+          if(err){
+            //bot.sendMessage(m.chatId,"Error found, monitor not active");
+            //m.active = false;
+          }
+          else{
+            m.lastMissed = w.total_missed;
+            m.firstTime = false;
+          }
+          _cb();
+        });
+      }
+      else{
+        client.get_witness(m.witness,function(err,w){
+          if(err){
+            //bot.sendMessage(m.chatId,"Error found, monitor not active");
+            //m.active = false;
+          }
+          else{
+            if(w.total_missed != m.lastMissed){
+              bot.sendMessage(m.chatId,"witness "+m.witness+" missed a new block (total missed "+w.total_missed+")");
+            }
+            m.lastMissed = w.total_missed;
+          }
+          _cb();
+        });
+      }
+    },cb);
+  }
+  catch(e){
+    cb(e);
+  }
 };
 
-// Load hMonitor file
-if(fs.existsSync("monitor.json")){
-  var monFile = JSON.parse(fs.readFileSync("monitor.json"));
-  hMonitor = monFile;
-}
-
-var urls = [conf.url];
-if(conf.backupUrls){
-  urls = urls.concat(conf.backupUrls);
-}
-
-
-
-var client = null;
-
-var checkClientAndUpdate = function(bot,cbUpdate){
+var checkClientAndUpdate = function(bot,client,cbUpdate){
   var isOk = true;
   async.whilst(
     function(){ return true},
     function(_cb){
-      getClient(urls,function(err,_client,url){
+      getClient(urls,client,function(err,_client,url){
         if(err){
           if(isOk){
             bot.sendMessage(conf.adminChatId,"No client founds!");
@@ -320,6 +340,7 @@ var checkClientAndUpdate = function(bot,cbUpdate){
             bot.sendMessage(conf.adminChatId,"Client found again");
             isOk = true;
           }
+          client = _client;
         }
         setTimeout(_cb,1000);
       });
@@ -328,7 +349,21 @@ var checkClientAndUpdate = function(bot,cbUpdate){
     });
 };
 
-getClient(urls,function(err,_client,url){
+// Load hMonitor file
+if(fs.existsSync("monitor.json")){
+  var monFile = JSON.parse(fs.readFileSync("monitor.json"));
+  hMonitor = monFile;
+}
+
+var urls = [conf.url];
+if(conf.backupUrls){
+  urls = urls.concat(conf.backupUrls);
+}
+
+var client = null;
+
+getClient(urls,client,function(err,_client,url){
+  console.log("URL",url);
   client = _client;
   var bot = new TelegramBot(token, {polling: true});
   bot.on('text', function (msg) {
@@ -341,10 +376,19 @@ getClient(urls,function(err,_client,url){
       bot.sendMessage(msg.chat.id,"Error: no witness in sync available");
     }
   });
-  // Monitor procedure
-  monitor(bot,client);
+  // // Monitor procedure
+  // monitor(bot,client);
   // check client procedure
-  checkClientAndUpdate(bot,function(err,_client){
+  checkClientAndUpdate(bot,client,function(err,_client){
     client = _client;
   });
+
+  // Monitor procedure
+  async.whilst(
+    function(){ return true},
+    function(cb){
+      monitor(bot,client,function(){
+        setTimeout(cb,1000);
+      });
+    },function(){});
 });
