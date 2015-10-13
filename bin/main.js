@@ -143,7 +143,7 @@ var cmds = {
         var res = _str.sprintf("%.8f",value);
         var resInv = _str.sprintf("%.2f",1/value);
         //console.log(res);
-        bot.sendMessage(msg.chat.id,asset+"/CORE: "+res+"\nCORE/"+asset+": "+resInv);
+        bot.sendMessage(msg.chat.id,asset+"/BTS: "+res+"\nBTS/"+asset+": "+resInv);
       }
     })
   },
