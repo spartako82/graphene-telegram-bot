@@ -19,7 +19,7 @@ var checkClient = function(client,cb){
         }
         else{
           var isRecent = false;
-          isRecent = parseInt(s.head_block_age) < 30 && s.head_block_age.match("second");
+          isRecent = parseInt(s.head_block_age) < 60 && s.head_block_age.match("second");
           var inSync = isRecent && parseFloat(s.participation) >= 50;
           if(inSync){
             cb(false,true);
