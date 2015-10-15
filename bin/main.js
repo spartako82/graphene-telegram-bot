@@ -5,7 +5,8 @@ var _ = require('underscore');
 var _str = require('underscore.string');
 var fs = require('fs');
 //var conf = require('./conf.json')
-var conf = require('../conf/conf.json')
+var conf = require('../conf/conf.json');
+var lib = require('../lib')
 
 console.log(conf);
 var token = conf.token;
@@ -124,6 +125,7 @@ var getWitnessParam = function(msg){
 };
 
 var cmds = {
+  "/feed" : lib.cmd.feed,
   "/price" : function(bot,client,msg){
     var asset = "USD";
     var params = getParams(msg);
@@ -233,7 +235,7 @@ var cmds = {
   },
   "/help" : function(bot,client,msg){
     bot.sendMessage(msg.chat.id,
-                    "Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n/status\n");
+                    "Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n/status\n/feed [ASSET]\n");
   },
 };
 

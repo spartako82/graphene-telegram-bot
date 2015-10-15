@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "minimist": "*",
+    "moment": "*",
     "async": "*",
     "yargs" : "*",
     "underscore": "*",
