@@ -126,6 +126,9 @@ var getWitnessParam = function(msg){
 
 var cmds = {
   "/feed" : lib.cmd.feed,
+  "/slots" : lib.cmd.slots,
+  "/setslot" : lib.cmd.setslot,
+  "/rmslot" : lib.cmd.rmslot,
   "/price" : function(bot,client,msg){
     var asset = "USD";
     var params = getParams(msg);
@@ -235,7 +238,7 @@ var cmds = {
   },
   "/help" : function(bot,client,msg){
     bot.sendMessage(msg.chat.id,
-                    "Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n/status\n/feed [ASSET]\n");
+                    "Commands:\n\n/help\n/price [ASSET]\n/missed WITNESS\n/monitor WITNESS\n/stopmonitor WITNESS\n/listmonitor\n/status\n/feed [ASSET]\n/slots\n/setslot WITNESS min\n/rmslot WITNESS\n");
   },
 };
 
