@@ -1,6 +1,0 @@
-{
-  "token" : "<TELEGRAM TOKEN>",
-  "url" : "ws://127.0.0.1:8090",
-  "backupUrls" : ["ws://127.0.0.1:8091","ws://127.0.0.1:8092"],
-  "adminChatId" : "<ChatIdXAdmin>"
-}
