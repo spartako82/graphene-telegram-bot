@@ -17,7 +17,8 @@
     "underscore.string": "*",
     "ws" : "*",
     "node-telegram-bot-api" : "*",
-    "slack-client" : "*"
+    "slack-client" : "*",
+    "graphene" : "*"
   },
   "keywords": [
     "bitshares",
