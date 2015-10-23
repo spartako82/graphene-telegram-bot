@@ -18,9 +18,9 @@ Set up an empty wallet with ws connection enabled
 
   * Select a conf_example for telegram or slack and copy in conf.js
   * Create a bot in telegram or in slack and get the bot token
-  For Telegram:
+  - For Telegram:
   https://core.telegram.org/bots
-  For Slack:
+  - For Slack:
   https://api.slack.com/bot-users
   * change conf.js with the new token and the url
 
