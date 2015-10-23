@@ -28,6 +28,9 @@ var main = function(){
     "slots" : lib.cmd.slots.show,
     "setslot" : lib.cmd.slots.set,
     "rmslot" : lib.cmd.slots.rm,
+    "locations" : lib.cmd.locations.show,
+    "setlocation" : lib.cmd.locations.set,
+    "rmlocation" : lib.cmd.locations.rm,
     "price" : lib.cmd.price,
     "missed" : lib.cmd.missed,
     "monitor" : lib.cmd.monitor.add,
@@ -43,6 +46,7 @@ var main = function(){
   lib.utils.mkdirSync(conf.dataDir);
   lib.cmd.monitor.init(conf.dataDir);
   lib.cmd.slots.init(conf.dataDir);
+  lib.cmd.locations.init(conf.dataDir);
 
   var urls = [conf.url];
   if(conf.backupUrls){
