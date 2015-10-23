@@ -16,15 +16,15 @@ Set up an empty wallet with ws connection enabled
 
 # Configure
 
-  * Select a conf_example for telegram or slack and copy in conf.js
+  * Select a conf_example for telegram or slack and copy in conf.json
   * Create a bot in telegram or in slack and get the bot token
   * For Telegram:
   https://core.telegram.org/bots
   * For Slack:
   https://api.slack.com/bot-users
-  * change conf.js with the new token and the url
+  * change conf.json with the new token and the url
 
 # Run
 ```
-  node bin/gphbot.js conf.js
+  node bin/gphbot.js conf.json
 ```
