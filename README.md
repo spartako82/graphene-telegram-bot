@@ -22,7 +22,7 @@ Set up an empty wallet with ws connection enabled
   https://core.telegram.org/bots
   * For Slack:
   https://api.slack.com/bot-users
-  * change conf.json with the new token and the url
+  * change conf.json with the new token and the wallet url
 
 # Run
 ```
