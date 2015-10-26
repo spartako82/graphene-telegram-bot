@@ -37,6 +37,7 @@ var main = function(){
     "listmonitor" : lib.cmd.monitor.list,
     "stopmonitor" : lib.cmd.monitor.rm,
     "status" : lib.cmd.status,
+    "eta" : lib.cmd.eta,
     "help" : lib.cmd.help(conf.cmdPrefix),
   };
   // Prepend prefix
