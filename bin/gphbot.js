@@ -31,9 +31,6 @@ var main = function(){
     "locations" : lib.cmd.locations.show,
     "setlocation" : lib.cmd.locations.set,
     "rmlocation" : lib.cmd.locations.rm,
-    "liquidity" : lib.cmd.liquidity.show,
-    "setliquidity" : lib.cmd.liquidity.set,
-    "rmliquidity" : lib.cmd.liquidity.rm,
     "price" : lib.cmd.price,
     "missed" : lib.cmd.missed,
     "monitor" : lib.cmd.monitor.add,
@@ -51,7 +48,6 @@ var main = function(){
   lib.cmd.monitor.init(conf.dataDir);
   lib.cmd.slots.init(conf.dataDir);
   lib.cmd.locations.init(conf.dataDir);
-  lib.cmd.liquidity.init(conf.dataDir);
 
   var urls = [conf.url];
   if(conf.backupUrls){
