@@ -73,7 +73,10 @@ var main = function(){
     async.whilst(
       function(){ return true},
       function(cb){
-        lib.cmd.monitor.notify(client,back.sendMessage,function(){
+        lib.cmd.monitor.notify(client,back.sendMessage,function(e){
+	  if(e){
+	    console.log(e);
+	  }
           setTimeout(cb,1000);
         });
       },function(){});
