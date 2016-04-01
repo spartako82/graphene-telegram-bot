@@ -17,7 +17,7 @@
     "underscore.string": "*",
     "ws" : "*",
     "node-telegram-bot-api" : "*",
-    "slack-client" : "*",
+    "slack-client" : "1.x",
     "graphene" : "*"
   },
   "keywords": [
